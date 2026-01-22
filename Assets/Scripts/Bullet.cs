@@ -4,12 +4,15 @@ public class Bullet : MonoBehaviour
 {
     public float speed = 10f;
     public float lifeTime = 2f;
-
+    private GameController gameController;
     Vector3 dir;
 
     // Prefab default menghadap kanan-atas (45 derajat)
     const float SPRITE_ANGLE_OFFSET = -45f;
-
+    void Start()
+    {
+        gameController = FindFirstObjectByType<GameController>();
+    }
     public void Init(Vector3 direction)
     {
         dir = direction.normalized;
@@ -30,6 +33,7 @@ public class Bullet : MonoBehaviour
     {
         if (col.CompareTag("Enemy"))
         {
+            gameController.AddScore(10);
             Destroy(col.gameObject);
             Destroy(gameObject);
         }

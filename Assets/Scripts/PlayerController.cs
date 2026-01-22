@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour
@@ -12,13 +13,20 @@ public class PlayerController : MonoBehaviour
 
     SpriteRenderer sr;
     Vector3 lastPosition;
+
     [Header("Auto Attack")]
     public float attackRange = 5f;
     public float fireRate = 0.5f;
     public GameObject bulletPrefab;
     public Transform firePoint;
 
-float fireTimer;
+    [Header("Invincibility")]
+    public float invincibleDuration = 0.8f;
+
+    public GameController gameController;
+
+    float fireTimer;
+    bool isInvincible = false;
 
     void Start()
     {
@@ -39,6 +47,7 @@ float fireTimer;
         HandleFlip();
         AutoShoot();
     }
+
 
     void HandleInput()
     {
@@ -86,6 +95,7 @@ float fireTimer;
             pathIndex++;
         }
     }
+
     void HandleFlip()
     {
         Vector3 delta = transform.position - lastPosition;
@@ -95,22 +105,28 @@ float fireTimer;
 
         lastPosition = transform.position;
     }
+
     void AutoShoot()
     {
         fireTimer += Time.deltaTime;
         if (fireTimer < fireRate) return;
 
         EnemyController target = FindNearestEnemy();
-        if (target == null || target.gameObject == null)
-        return;
+        if (target == null) return;
 
         Vector3 dir = (target.transform.position - firePoint.position).normalized;
 
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        GameObject bullet = Instantiate(
+            bulletPrefab,
+            firePoint.position,
+            Quaternion.identity
+        );
+
         bullet.GetComponent<Bullet>().Init(dir);
 
         fireTimer = 0f;
     }
+
     EnemyController FindNearestEnemy()
     {
         EnemyController[] enemies =
@@ -121,8 +137,7 @@ float fireTimer;
 
         foreach (var e in enemies)
         {
-            if (e == null || e.gameObject == null)
-                continue;
+            if (e == null) continue;
 
             float d = Vector3.Distance(transform.position, e.transform.position);
             if (d < minDist)
@@ -135,5 +150,44 @@ float fireTimer;
     }
 
 
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Enemy"))
+        {
+            TakeDamage(1);
+            Destroy(collision.gameObject);
+        }
+
+        if (collision.CompareTag("Health"))
+        {
+            gameController.HealPlayer(2);
+            Destroy(collision.gameObject);
+        }
+    }
+
+    void TakeDamage(int dmg)
+    {
+        if (isInvincible)
+            return;
+
+        gameController.DamagePlayer(dmg);
+        StartCoroutine(InvincibleCoroutine());
+    }
+
+    IEnumerator InvincibleCoroutine()
+    {
+        isInvincible = true;
+
+        float timer = 0f;
+        while (timer < invincibleDuration)
+        {
+            sr.enabled = !sr.enabled;  
+            yield return new WaitForSeconds(0.1f);
+            timer += 0.1f;
+        }
+
+        sr.enabled = true;
+        isInvincible = false;
+    }
     public (int x, int y) GridPos => (gx, gy);
 }

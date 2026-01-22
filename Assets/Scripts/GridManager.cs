@@ -15,8 +15,8 @@ public class GridManager : MonoBehaviour
     public TileBase[] obstacleTiles;
 
     [Header("Grid Size")]
-    public int width = 50;
-    public int height = 50;
+    public int width = 100;
+    public int height = 100;
 
     public bool[,] Map { get; private set; }
 
