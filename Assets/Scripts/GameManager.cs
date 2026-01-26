@@ -4,6 +4,9 @@ using UnityEngine.Events;
 public class GameController : MonoBehaviour
 {
     public static GameController Instance;
+    private AudioManager audioManager;
+    public AudioClip battleBgm;
+    public AudioClip menuBgm;
 
     [Header("Player Stats")]
     [SerializeField] int maxHP = 5;
@@ -19,6 +22,10 @@ public class GameController : MonoBehaviour
 
     void Awake()
     {
+        audioManager = FindFirstObjectByType<AudioManager>();
+        audioManager.stopBgm();
+        audioManager.setBgm(battleBgm);
+        audioManager.playBgm();
         if (Instance != null)
         {
             Destroy(gameObject);
@@ -28,7 +35,12 @@ public class GameController : MonoBehaviour
         Instance = this;
         currentHP = maxHP;
     }
-
+    void OnDestroy()
+    {
+        audioManager.stopBgm();
+        audioManager.setBgm(menuBgm);
+        audioManager.playBgm();        
+    }
     /* ==========================
        HP SYSTEM
        ========================== */

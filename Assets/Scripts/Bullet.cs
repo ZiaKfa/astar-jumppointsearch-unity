@@ -5,6 +5,7 @@ public class Bullet : MonoBehaviour
     public float speed = 10f;
     public float lifeTime = 2f;
     private GameController gameController;
+    private AudioManager audioManager;
     Vector3 dir;
 
     // Prefab default menghadap kanan-atas (45 derajat)
@@ -12,6 +13,7 @@ public class Bullet : MonoBehaviour
     void Start()
     {
         gameController = FindFirstObjectByType<GameController>();
+        audioManager = FindFirstObjectByType<AudioManager>();
     }
     public void Init(Vector3 direction)
     {
@@ -33,13 +35,15 @@ public class Bullet : MonoBehaviour
     {
         if (col.CompareTag("Enemy"))
         {
-            gameController.AddScore(10);
+            audioManager.playSfx(audioManager.enemyHit);
+            gameController.AddScore(5);
             Destroy(col.gameObject);
             Destroy(gameObject);
         }
         else if (col.CompareTag("Obstacle"))
         {
             Destroy(gameObject);
+            audioManager.playSfx(audioManager.bulletHit);
         }
     }
 }

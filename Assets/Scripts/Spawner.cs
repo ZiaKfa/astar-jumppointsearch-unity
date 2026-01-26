@@ -4,12 +4,15 @@ public class Spawner : MonoBehaviour
 {
     public GameObject[] enemyPrefab;
     public GameObject healthPrefab;
+    public GameObject coinPrefab;
     public float enemySpawnInterval = 2f;
     public float healthSpawnInterval = 10f;
+    public float coinSpawnInterval = 5f;
 
     Camera cam;
     float enemyTimer;
-    float healthTimer;
+    float healthTimer;  
+    float coinTimer;
 
     void Start()
     {
@@ -29,6 +32,12 @@ public class Spawner : MonoBehaviour
         {
             healthTimer = 0f;
             SpawnHealthOutsideCamera();
+        }
+        coinTimer += Time.deltaTime;
+        if (coinTimer >= coinSpawnInterval)
+        {
+            coinTimer = 0f;
+            SpawnCoinOutsideCamera();
         }
     }
 
@@ -75,6 +84,28 @@ public class Spawner : MonoBehaviour
 
         Debug.LogWarning("EnemySpawner: gagal menemukan posisi spawn HealthPack di luar kamera.");
     }
+
+    public void SpawnCoinOutsideCamera()
+    {
+        for (int i = 0; i < 100; i++) // safety loop
+        {
+            Vector2Int cell = GridManager.Instance.GetRandomWalkableCell();
+            Vector3 world = GridManager.Instance.GridToWorld(cell.x, cell.y);
+
+            if (IsOutsideCamera(world))
+            {
+                GameObject coin = Instantiate(coinPrefab, world, Quaternion.identity);
+                Vector3 p = coin.transform.position;
+                p.z = -1f;
+                coin.transform.position = p;
+
+                return;
+            }
+        }
+
+        Debug.LogWarning("EnemySpawner: gagal menemukan posisi spawn Coin di luar kamera.");
+    }
+
     bool IsOutsideCamera(Vector3 worldPos)
     {
         Vector3 viewport = cam.WorldToViewportPoint(worldPos);

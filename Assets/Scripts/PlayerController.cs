@@ -1,11 +1,12 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 public class PlayerController : MonoBehaviour
 {
     public float moveSpeed = 5f;
-
+    private AudioManager audioManager;
     List<(int x, int y)> path;
     int pathIndex;
 
@@ -27,11 +28,11 @@ public class PlayerController : MonoBehaviour
 
     float fireTimer;
     bool isInvincible = false;
-
+    
     void Start()
     {
         sr = GetComponent<SpriteRenderer>();
-
+        audioManager = FindFirstObjectByType<AudioManager>();
         Vector2Int cell = GridManager.Instance.GetRandomWalkableCell();
         gx = cell.x;
         gy = cell.y;
@@ -115,7 +116,7 @@ public class PlayerController : MonoBehaviour
         if (target == null) return;
 
         Vector3 dir = (target.transform.position - firePoint.position).normalized;
-
+        audioManager.playSfx(audioManager.shoot);
         GameObject bullet = Instantiate(
             bulletPrefab,
             firePoint.position,
@@ -155,12 +156,20 @@ public class PlayerController : MonoBehaviour
         if (collision.CompareTag("Enemy"))
         {
             TakeDamage(1);
+            audioManager.playSfx(audioManager.playerHit);
             Destroy(collision.gameObject);
         }
 
         if (collision.CompareTag("Health"))
         {
-            gameController.HealPlayer(2);
+            audioManager.playSfx(audioManager.heal);
+            gameController.HealPlayer(1);
+            Destroy(collision.gameObject);
+        }
+        if (collision.CompareTag("Coin"))
+        {
+            audioManager.playSfx(audioManager.coin);
+            gameController.AddScore(10);
             Destroy(collision.gameObject);
         }
     }
