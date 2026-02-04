@@ -40,6 +40,7 @@ public class Main : MonoBehaviour
     List<ScenReader.ScenItem> currentScenItems; 
     string mapsFolder;
     string[] availableMaps;
+    Coroutine benchmarkCoroutine;
 
     int startX, startY, goalX, goalY;
 
@@ -89,14 +90,14 @@ public class Main : MonoBehaviour
 
     void Update()
     {
-        // State management UI interaction
         bool busy = loadingPanel.activeSelf;
+        
         btnRenderMap.interactable = !busy;
-        btnRunAStar.interactable = !busy && !isAstar && isMapRendered;
-        btnRunJPS.interactable = !busy && !isJPS && isMapRendered;
+        btnRunAStar.interactable = !busy && !isAstar && isMapRendered && ParseInput();
+        btnRunJPS.interactable = !busy && !isJPS && isMapRendered && ParseInput();
         btnClearPath.interactable = !busy && (isAstar || isJPS);
         startBenchmark.interactable = !busy && isMapRendered;
-        btnBenchmarkAll.interactable = !busy && availableMaps != null && availableMaps.Length > 0;
+        btnBenchmarkAll.interactable = !busy && availableMaps?.Length > 0;
     }
 
     // ================= LOAD MAP FILES =================
@@ -132,9 +133,9 @@ public class Main : MonoBehaviour
 
         if (!File.Exists(path))
         {
-            UnityEngine.Debug.LogError("Map file not found: " + path);
-            benchmarkResultsPanel.SetActive(true);
-            benchmarkResultsText.text = "Error: Map file not found.";
+            var msg = "Map file not found: " + path;
+            UnityEngine.Debug.Log(msg);
+            StartShowBenchmarkPanel(msg);
             return;
         }
 
@@ -144,16 +145,15 @@ public class Main : MonoBehaviour
         if (File.Exists(scenPath))
         {
             currentScenItems = ScenReader.LoadScen(scenPath);
+            var msg = $"Loaded {currentScenItems.Count} scen items from {mapName}.scen";
             UnityEngine.Debug.Log($"Loaded {currentScenItems.Count} scen items from {mapName}.scen");
-            benchmarkResultsPanel.SetActive(true);
-            benchmarkResultsText.text = $"Loaded {currentScenItems.Count} scen items from {mapName}.scen";
+            StartShowBenchmarkPanel(msg);
         }
         else
         {
             currentScenItems = new List<ScenReader.ScenItem>();
             UnityEngine.Debug.LogWarning($"SCEN file not found for {mapName}");
-            benchmarkResultsPanel.SetActive(true);
-            benchmarkResultsText.text = "Warning: SCEN file not found.";
+            StartShowBenchmarkPanel("Warning: SCEN file not found.");
         }
 
         mapRenderer.RenderFromArray(currentMap);
@@ -186,8 +186,7 @@ public class Main : MonoBehaviour
         
         sw.Stop();
         UnityEngine.Debug.Log($"A* Finished. Cost: {AStar.LastFinalCost}. Time: {sw.Elapsed.TotalMilliseconds} ms");
-        benchmarkResultsPanel.SetActive(true);
-        benchmarkResultsText.text = $"A* Finished. Cost: {AStar.LastFinalCost}. Time: {sw.Elapsed.TotalMilliseconds} ms";
+        StartShowBenchmarkPanel($"A* Finished. Cost: {AStar.LastFinalCost}. Time: {sw.Elapsed.TotalMilliseconds} ms", 7f);
     }
 
     void RenderJPS()
@@ -211,8 +210,8 @@ public class Main : MonoBehaviour
 
         sw.Stop();
         UnityEngine.Debug.Log($"JPS Finished. Cost: {JumpPointSearch.LastFinalCost}. Time: {sw.Elapsed.TotalMilliseconds} ms");
-        benchmarkResultsPanel.SetActive(true);
-        benchmarkResultsText.text = $"JPS Finished. Cost: {JumpPointSearch.LastFinalCost}. Time: {sw.Elapsed.TotalMilliseconds} ms";
+        StartShowBenchmarkPanel($"JPS Finished. Cost: {JumpPointSearch.LastFinalCost}. Time: {sw.Elapsed.TotalMilliseconds} ms", 7f);
+        
     }
 
     void ClearPath()
@@ -371,9 +370,8 @@ public class Main : MonoBehaviour
 
         UnityEngine.Debug.Log($"SUMMARY A*: Time={avgTimeA:F4}ms, Mem={avgMemA}b");
         UnityEngine.Debug.Log($"SUMMARY JPS: Time={avgTimeJ:F4}ms, Mem={avgMemJ}b");
-        benchmarkResultsPanel.SetActive(true);
-        benchmarkResultsText.text = $"SUMMARY A*: Time={avgTimeA:F4}ms, Mem={avgMemA}b\n" +
-                                    $"SUMMARY JPS: Time={avgTimeJ:F4}ms, Mem={avgMemJ}b";
+        StartShowBenchmarkPanel($"SUMMARY A*: Time={avgTimeA:F4}ms, Mem={avgMemA}b\n" +
+                                $"SUMMARY JPS: Time={avgTimeJ:F4}ms, Mem={avgMemJ}b", 7f);
     }
 
     void SaveBenchmarkToCSV(string mapName, List<BenchmarkResult> results)
@@ -410,7 +408,20 @@ public class Main : MonoBehaviour
         }
         UnityEngine.Debug.Log($"CSV Saved: {filePath}");
     }
+    void StartShowBenchmarkPanel(string message, float seconds = 2f)
+    {
+        if (benchmarkCoroutine != null) StopCoroutine(benchmarkCoroutine);
+        benchmarkCoroutine = StartCoroutine(ShowBenchmarkPanelCoroutine(message, seconds));
+    }
 
+    IEnumerator ShowBenchmarkPanelCoroutine(string message, float seconds)
+    {
+        benchmarkResultsText.text = message;
+        benchmarkResultsPanel.SetActive(true);
+        yield return new WaitForSeconds(seconds);
+        benchmarkResultsPanel.SetActive(false);
+        benchmarkCoroutine = null;
+    }
     // ================== PARSE INPUT ==================
     bool ParseInput()
     {
@@ -419,4 +430,6 @@ public class Main : MonoBehaviour
                int.TryParse(inputGoalX.text, out goalX) &&
                int.TryParse(inputGoalY.text, out goalY);
     }
+
+    
 }

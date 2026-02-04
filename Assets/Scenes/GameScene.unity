@@ -2345,6 +2345,8 @@ MonoBehaviour:
   firePoint: {fileID: 790054025}
   invincibleDuration: 0.8
   gameController: {fileID: 2074045873}
+  feedbackPrefab: {fileID: 210708839827494235, guid: 2170dfe57e5c1054ab2985d16e6bdfe0, type: 3}
+  invalidFeedbackPrefab: {fileID: 8329336464990646349, guid: 7aebcc20038f22649a28e952c69f48dc, type: 3}
 --- !u!61 &897119163
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -6224,6 +6226,8 @@ MonoBehaviour:
   coin: {fileID: 8300000, guid: 12f66cbf7dec3eb45ae773901aba6717, type: 3}
   select: {fileID: 8300000, guid: ffa58e249d27ffe488edd6be70dd534b, type: 3}
   bulletHit: {fileID: 8300000, guid: 6f109bea76f611244ac1a89b63549bc0, type: 3}
+  valid: {fileID: 8300000, guid: 65eab680849395c428a23080c3379a5f, type: 3}
+  invalid: {fileID: 8300000, guid: 2faaae9e0d4400e4d8d11168505b46dc, type: 3}
 --- !u!4 &2122717202
 Transform:
   m_ObjectHideFlags: 0

@@ -25,6 +25,9 @@ public class PlayerController : MonoBehaviour
     public float invincibleDuration = 0.8f;
 
     public GameController gameController;
+    public GameObject feedbackPrefab;
+    public GameObject invalidFeedbackPrefab;
+    private float feedbackDuration = 0.3f;
 
     float fireTimer;
     bool isInvincible = false;
@@ -59,7 +62,7 @@ public class PlayerController : MonoBehaviour
 
         if (!GridManager.Instance.WorldToGrid(world, out int tx, out int ty))
             return;
-
+        Feedback(tx, ty);
         GridManager.Instance.WorldToGrid(transform.position, out gx, out gy);
 
         var rawPath = JumpPointSearch.FindPath(
@@ -74,7 +77,37 @@ public class PlayerController : MonoBehaviour
         path = new List<(int, int)>(rawPath);
         pathIndex = 0;
     }
+    void Feedback(int x, int y)
+    {
+        if (feedbackPrefab == null) return;
 
+        // Check if the target position is an obstacle
+
+
+        Vector3 pos = GridManager.Instance.GridToWorld(x, y);
+        if (!GridManager.Instance.Map[x, y])
+        {
+        audioManager.playSfx(audioManager.invalid);
+        GameObject indicator = Instantiate(
+            invalidFeedbackPrefab,
+            pos,
+            Quaternion.Euler(0, 0, 45)
+        );
+        Destroy(indicator, feedbackDuration);
+        } else {
+        pos = pos - new Vector3(0f, 0.3f, 0f);
+        audioManager.playSfx(audioManager.valid);
+        GameObject indicator = Instantiate(
+            feedbackPrefab,
+            pos,
+            Quaternion.identity
+        );
+        Destroy(indicator, feedbackDuration);
+        }
+
+
+        
+    }
     void MoveAlongPath()
     {
         if (path == null || pathIndex >= path.Count)

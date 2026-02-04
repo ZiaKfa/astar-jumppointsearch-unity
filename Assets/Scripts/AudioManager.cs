@@ -13,6 +13,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip coin;
     public AudioClip select;
     public AudioClip bulletHit;
+    public AudioClip valid;
+    public AudioClip invalid;
     public static AudioManager instance;
     private void Awake()
     {

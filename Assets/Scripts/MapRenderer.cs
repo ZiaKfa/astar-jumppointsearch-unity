@@ -11,6 +11,8 @@ public class MapRenderer : MonoBehaviour
     public TileBase tilePath;
     public TileBase openListTile;
     public TileBase closedListTile;
+    public TileBase startTile;
+    public TileBase endTile;
     public LineRenderer lineRenderer;
     bool lineInitialized = false;
     public float lineWidth = 0.1f;
@@ -48,16 +50,24 @@ public void RenderFromArray(bool[,] map)
             }
         }
     }
+    
 }
 
     public void RenderPath((int x, int y)[] path, bool[,] map)
     {
         int height = map.GetLength(1);
 
-        foreach (var p in path)
+        for (int i = 0; i < path.Length; i++)
         {
-            int ty = height - 1 - p.y;
-            groundTilemap.SetTile(new Vector3Int(p.x, ty, 0), tilePath);
+            var (x, y) = path[i];
+            int ty = height - 1 - y;
+            
+            if (i == 0)
+                groundTilemap.SetTile(new Vector3Int(x, ty, 0), startTile);
+            else if (i == path.Length - 1)
+                groundTilemap.SetTile(new Vector3Int(x, ty, 0), endTile);
+            else
+                groundTilemap.SetTile(new Vector3Int(x, ty, 0), tilePath);
         }
 
         DrawPathLine(path, map);
